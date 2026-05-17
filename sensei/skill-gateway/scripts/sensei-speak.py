@@ -114,13 +114,40 @@ def speak_elevenlabs(text: str, output_path: Path) -> bool:
 
 
 # ── Edge TTS ──────────────────────────────────────────────────────────────────
+def _detect_voice(text: str) -> str:
+    """Helper to select the most appropriate native voice for the given text's language."""
+    # Check for Hindi Devanagari characters
+    has_hindi = any(ord(c) >= 0x0900 and ord(c) <= 0x097F for c in text)
+    if has_hindi:
+        return "hi-IN-MadhurNeural"
+
+    # Check for Spanish keywords or special Spanish characters
+    spanish_keywords = {
+        "hola", "amigo", "gracias", "español", "descanso", "cinco", "minutos", "conversación", 
+        "estudiar", "música", "buena", "suerte", "vaya", "por", "favor", "bienvenido", "el", 
+        "la", "los", "las", "un", "una", "es", "hora", "tomar", "descansar", "bien", "merecido",
+        "con", "de", "en", "para", "como", "esta", "esto", "este", "buenos", "días", "tardes", "noches"
+    }
+    words = set(text.lower().replace("¿", "").replace("¡", "").replace(",", "").replace(".", "").replace("?", "").replace("!", "").split())
+    has_spanish = len(words.intersection(spanish_keywords)) >= 1 or any(c in text for c in "áéíóúñ¡¿")
+    
+    if has_spanish:
+        return "es-ES-AlvaroNeural"
+        
+    return EDGE_VOICE
+
+
 def speak_edge_tts(text: str, output_path: Path) -> bool:
     """Generate speech with Edge TTS. Returns True on success."""
     try:
         import edge_tts
 
+        selected_voice = _detect_voice(text)
+        if selected_voice != EDGE_VOICE:
+            print(f"[sensei-speak] Custom voice selected: {selected_voice}", file=sys.stderr)
+
         async def _generate():
-            communicate = edge_tts.Communicate(text, EDGE_VOICE, rate=EDGE_RATE)
+            communicate = edge_tts.Communicate(text, selected_voice, rate=EDGE_RATE)
             await communicate.save(str(output_path))
 
         asyncio.run(_generate())
@@ -166,57 +193,141 @@ def play_audio(mp3_path: Path):
 
 
 # ── Main logic ────────────────────────────────────────────────────────────────
-def speak_raw(text: str, output_path: str | None = None):
-    """Speak text using ElevenLabs (short) or Edge TTS (long), with caching."""
+def is_spanish_sentence(sent: str) -> bool:
+    spanish_keywords = {
+        "hola", "amigo", "gracias", "español", "descanso", "cinco", "minutos", "conversación", 
+        "estudiar", "música", "buena", "suerte", "vaya", "por", "favor", "bienvenido", "el", 
+        "la", "los", "las", "un", "una", "es", "hora", "tomar", "descansar", "bien", "merecido",
+        "con", "de", "en", "para", "como", "esta", "esto", "este", "buenos", "días", "tardes", "noches",
+        "hablemos", "amigo", "amiga", "amigos", "amigas", "sí", "no", "por qué", "qué", "cómo", "dónde",
+        "quién", "cuál", "cuáles", "cuándo", "cuánto", "cuántos", "cuántas"
+    }
+    words = set(sent.lower().replace("¿", "").replace("¡", "").replace(",", "").replace(".", "").replace("?", "").replace("!", "").split())
+    return len(words.intersection(spanish_keywords)) >= 1 or any(c in sent for c in "áéíóúñ¡¿")
+
+
+def segment_text_by_language(text: str):
+    import re
+    # Split by sentences but keep delimiters if possible, or just standard split
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    segments = []
+    current_lang = None
+    current_text = []
+
+    for sent in sentences:
+        sent = sent.strip()
+        if not sent:
+            continue
+        lang = "es" if is_spanish_sentence(sent) else "en"
+        if current_lang is None:
+            current_lang = lang
+            current_text.append(sent)
+        elif current_lang == lang:
+            current_text.append(sent)
+        else:
+            segments.append((current_lang, " ".join(current_text)))
+            current_lang = lang
+            current_text = [sent]
+
+    if current_text:
+        segments.append((current_lang, " ".join(current_text)))
+    return segments
+
+
+def speak_segment_raw(text: str, output_path: Path) -> bool:
+    """Generate speech for a single segment and save it to output_path. Returns True on success."""
     text = text.strip()
     if not text:
-        return
+        return False
 
+    is_spanish = _detect_voice(text) == "es-ES-AlvaroNeural"
     use_elevenlabs = (
         ELEVENLABS_API_KEY
         and len(text) <= ELEVENLABS_MAX_CHARS
+        and not is_spanish
     )
     engine = "elevenlabs" if use_elevenlabs else "edge"
 
     # Check cache
     cached = _cache_path(text, engine)
     if cached.exists() and cached.stat().st_size > 0:
-        if output_path:
-            shutil.copy2(cached, output_path)
-        else:
-            play_audio(cached)
-        return
-
-    # Generate
-    tmp = Path(tempfile.gettempdir()) / f"sensei-tts-{int(time.time() * 1000)}.mp3"
-    success = False
-
-    if use_elevenlabs:
-        success = speak_elevenlabs(text, tmp)
-        if not success:
-            # Fallback to Edge TTS
-            engine = "edge"
-            success = speak_edge_tts(text, tmp)
-    else:
-        success = speak_edge_tts(text, tmp)
-
-    if not success:
-        print("TTS Generation failed completely.", file=sys.stderr)
-        return
-
-    # Cache the result
-    if CACHE_DIR and tmp.exists():
         try:
-            shutil.copy2(tmp, _cache_path(text, engine))
+            shutil.copy2(cached, output_path)
+            return True
         except OSError:
             pass
 
-    # Output or play
-    if output_path:
-        shutil.move(str(tmp), output_path)
+    success = False
+    if use_elevenlabs:
+        success = speak_elevenlabs(text, output_path)
+        if not success:
+            # Fallback to Edge TTS
+            engine = "edge"
+            success = speak_edge_tts(text, output_path)
     else:
-        play_audio(tmp)
-        tmp.unlink(missing_ok=True)
+        success = speak_edge_tts(text, output_path)
+
+    if success and CACHE_DIR and output_path.exists():
+        try:
+            shutil.copy2(output_path, _cache_path(text, engine))
+        except OSError:
+            pass
+
+    return success
+
+
+def speak_raw(text: str, output_path: str | None = None):
+    """Speak text using language-specific segmentation for dynamic voice switching."""
+    text = text.strip()
+    if not text:
+        return
+
+    segments = segment_text_by_language(text)
+    if len(segments) <= 1:
+        tmp = Path(tempfile.gettempdir()) / f"sensei-tts-{int(time.time() * 1000)}.mp3"
+        if speak_segment_raw(text, tmp):
+            if output_path:
+                shutil.move(str(tmp), output_path)
+            else:
+                play_audio(tmp)
+                tmp.unlink(missing_ok=True)
+        return
+
+    # Process multiple segments
+    temp_files = []
+    success = True
+    
+    for i, (lang, seg_text) in enumerate(segments):
+        tmp_seg = Path(tempfile.gettempdir()) / f"sensei-tts-seg-{i}-{int(time.time() * 1000)}.mp3"
+        if speak_segment_raw(seg_text, tmp_seg):
+            temp_files.append(tmp_seg)
+        else:
+            success = False
+            break
+
+    if not success or not temp_files:
+        print("TTS Generation failed for one or more segments.", file=sys.stderr)
+        for f in temp_files:
+            f.unlink(missing_ok=True)
+        return
+
+    if output_path:
+        # Concatenate MP3 files
+        try:
+            with open(output_path, "wb") as outfile:
+                for f in temp_files:
+                    outfile.write(f.read_bytes())
+        finally:
+            for f in temp_files:
+                f.unlink(missing_ok=True)
+    else:
+        # Play segments sequentially
+        try:
+            for f in temp_files:
+                play_audio(f)
+        finally:
+            for f in temp_files:
+                f.unlink(missing_ok=True)
 
 
 def speak(text: str, output_path: str | None = None):

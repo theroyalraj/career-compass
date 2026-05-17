@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import dotenv from 'dotenv';
 import pinoHttp from 'pino-http';
+import { createClient } from 'redis';
 import { rootLogger } from './log.js';
 import { useDirectIntake, enqueueDirectToPcAgent } from './directIntake.js';
 
@@ -114,6 +115,20 @@ const server = app.listen(PORT, () => {
     '  └──────────────────────────────────────────────────┘\n\n',
   );
   rootLogger.info({ port: PORT }, 'Sensei voice gateway listening');
+
+  // Start Redis Heartbeat
+  const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+  const redisClient = createClient({ url: redisUrl });
+  redisClient.on('error', (err) => {
+    // Suppress connection errors
+  });
+  redisClient.connect().then(() => {
+    setInterval(() => {
+      redisClient.set('sensei:heartbeat:gateway', 'active', { EX: 15 }).catch(() => {});
+    }, 5000);
+  }).catch((err) => {
+    rootLogger.warn({ err: err.message }, 'Redis heartbeat connection failed');
+  });
 });
 
 server.on('error', (err) => {

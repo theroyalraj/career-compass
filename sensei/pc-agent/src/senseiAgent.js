@@ -49,15 +49,17 @@ const COMPLEX_PATTERNS = [
 ];
 
 function isComplexTask(text) {
-  if (text.length > 500) return true;
+  if (text.length > 2000) return true;
   return COMPLEX_PATTERNS.filter((p) => p.test(text)).length >= 2;
 }
 
 // ── Direct API call (fast path) ──────────────────────────────────────────────
-async function callLlmApi(text) {
+async function callLlmApi(text, systemStatus = '') {
   const keysStr = process.env.OPENROUTER_API_KEYS || process.env.OPENROUTER_API_KEY || '';
   const keys = keysStr.split(',').map(k => k.trim()).filter(Boolean);
   
+  const systemPrompt = SENSEI_SYSTEM_PROMPT + (systemStatus ? `\n\n${systemStatus}` : '');
+
   if (keys.length > 0) {
     const models = [
       process.env.OPENROUTER_SONNET_MODEL || 'meta-llama/llama-3.3-70b-instruct:free',
@@ -79,7 +81,7 @@ async function callLlmApi(text) {
             body: JSON.stringify({
               model: model,
               messages: [
-                { role: 'system', content: SENSEI_SYSTEM_PROMPT },
+                { role: 'system', content: systemPrompt },
                 { role: 'user', content: text }
               ],
             }),
@@ -95,7 +97,6 @@ async function callLlmApi(text) {
           const data = await response.json();
           if (data.error) {
             lastErr = new Error(`OpenRouter API Error (${data.error.code}): ${data.error.message}`);
-            // Check if it's a rate limit or upstream rate limit
             const isRateLimit = data.error.code === 429 || 
                                 String(data.error.message).toLowerCase().includes('rate') ||
                                 String(data.error.message).toLowerCase().includes('limit');
@@ -129,7 +130,7 @@ async function callLlmApi(text) {
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 1024,
-      system: SENSEI_SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [{ role: 'user', content: text }],
     }),
   });
@@ -181,13 +182,37 @@ function runClaudeCli(prompt) {
 // ── Main task runner ─────────────────────────────────────────────────────────
 export async function runSenseiTask(text, { userId, source } = {}) {
   const inputLower = text.toLowerCase().trim();
+  let systemStatusContext = '';
 
-  // Track last activity timestamp and handle Pomodoro commands
+  // Track last activity timestamp and handle commands
   try {
     const r = createClient({ url: 'redis://127.0.0.1:6379' });
     await r.connect();
     await r.set('sensei:last_activity_ts', Math.floor(Date.now() / 1000).toString());
 
+    // Intercept Silence Threshold Change
+    if (inputLower.includes('silence threshold') || inputLower.includes('umbral de silencio') || inputLower.includes('silence trigger') || inputLower.includes('cambiar el umbral')) {
+      const match = text.match(/\d+/);
+      if (match) {
+        const seconds = parseInt(match[0], 10);
+        if (seconds >= 10 && seconds <= 3600) {
+          await r.set('sensei:silence_threshold_sec', seconds.toString());
+          await r.disconnect();
+          return {
+            summary: `Right away, sir. I have set your silence threshold to ${seconds} seconds. I shall check in on you much more promptly now. ¡Entendido, amigo!`,
+            complex: false
+          };
+        } else {
+          await r.disconnect();
+          return {
+            summary: "I'm afraid the silence threshold must be between 10 seconds and 3600 seconds, sir. Let us keep it within reasonable bounds.",
+            complex: false
+          };
+        }
+      }
+    }
+
+    // Intercept Pomodoro commands
     if (inputLower.includes('start pomodoro') || inputLower.includes('start focus') || inputLower.includes('comenzar pomodoro') || inputLower.includes('iniciar pomodoro')) {
       const nowSec = Math.floor(Date.now() / 1000);
       await r.set('sensei:pomodoro:state', 'focus');
@@ -239,9 +264,26 @@ export async function runSenseiTask(text, { userId, source } = {}) {
       }
     }
 
+    // Query active heartbeats and statuses for dynamic system status context
+    const isMicActive = (await r.get('sensei:heartbeat:mic')) === 'active';
+    const isCompanionActive = (await r.get('sensei:heartbeat:companion')) === 'active';
+    const isGatewayActive = (await r.get('sensei:heartbeat:gateway')) === 'active';
+    const silenceThreshold = (await r.get('sensei:silence_threshold_sec')) || '180';
+    const pomoState = (await r.get('sensei:pomodoro:state')) || 'inactive';
+
+    systemStatusContext = `
+[SYSTEM STATUS CONTEXT (REAL-TIME)]:
+- Microphone Daemon (sensei-listen.py): ${isMicActive ? 'ACTIVE / ONLINE' : 'INACTIVE / OFFLINE'}
+- Silence Watcher (sensei-companion.py): ${isCompanionActive ? 'ACTIVE / ONLINE' : 'INACTIVE / OFFLINE'}
+- Voice Gateway (port 3848): ${isGatewayActive ? 'ACTIVE / ONLINE' : 'INACTIVE / OFFLINE'}
+- Brain Agent (port 3847): ACTIVE / ONLINE (Running this process)
+- Pomodoro Timer State: ${pomoState}
+- Silence Threshold: ${silenceThreshold} seconds
+`;
+
     await r.disconnect();
   } catch (e) {
-    console.error('[pc-agent] Redis Pomodoro check failed:', e);
+    console.error('[pc-agent] Redis checks failed:', e);
   }
 
   const complex = isComplexTask(text);
@@ -252,7 +294,7 @@ export async function runSenseiTask(text, { userId, source } = {}) {
     summary = await runClaudeCli(text);
   } else {
     console.log(`[sensei] Quick query → API: "${text.slice(0, 80)}"`);
-    summary = await callLlmApi(text);
+    summary = await callLlmApi(text, systemStatusContext);
   }
 
   // Truncate for voice output
