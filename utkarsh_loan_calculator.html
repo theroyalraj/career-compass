@@ -1,0 +1,292 @@
+
+<h2 class="sr-only">Interactive loan calculator for Utkarsh showing how much SBI loan to apply for with and without land collateral, across different scholarship scenarios</h2>
+<style>
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 12px; }
+.sec-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin: 1.5rem 0 10px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+.metric-label { font-size: 11px; color: var(--color-text-secondary); margin: 0 0 4px; }
+.metric-value { font-size: 19px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+.metric-sub { font-size: 11px; color: var(--color-text-tertiary); margin: 3px 0 0; }
+.row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+.row:last-child { border-bottom: none; }
+.row-label { color: var(--color-text-secondary); }
+.row-val { font-weight: 500; }
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); }
+.badge-green { background: #E1F5EE; color: #0F6E56; }
+.badge-amber { background: #FAEEDA; color: #854F0B; }
+.badge-blue { background: #E6F1FB; color: #185FA5; }
+.badge-red { background: #FCEBEB; color: #A32D2D; }
+.sch-btn { border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 6px 14px; font-size: 13px; cursor: pointer; background: transparent; color: var(--color-text-secondary); margin: 0 4px 6px 0; }
+.sch-btn.active { background: #E1F5EE; color: #0F6E56; border-color: #5DCAA5; }
+.slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.slider-label { font-size: 13px; color: var(--color-text-secondary); width: 100px; flex-shrink: 0; }
+.slider-val { font-size: 13px; font-weight: 500; min-width: 56px; text-align: right; }
+.warn { background: #FAEEDA; border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 12px; color: #854F0B; margin-bottom: 12px; }
+.good { background: #E1F5EE; border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 12px; color: #0F6E56; margin-bottom: 12px; }
+.scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.sc-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 0.875rem 1rem; }
+.sc-card.best { border: 2px solid #1D9E75; }
+.sc-title { font-size: 13px; font-weight: 500; margin: 0 0 6px; }
+.sc-amt { font-size: 20px; font-weight: 500; margin: 4px 0; }
+.sc-detail { font-size: 11px; color: var(--color-text-secondary); margin: 2px 0; }
+.divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1.25rem 0; }
+</style>
+
+<div style="padding: 0.5rem 0;">
+
+<p class="sec-label">Step 1 — your total budget</p>
+<div class="grid2">
+  <div class="metric"><p class="metric-label">Tuition</p><p class="metric-value">₹5.46L</p><p class="metric-sub">€5,750 non-EU</p></div>
+  <div class="metric"><p class="metric-label">Living (12 mo)</p><p class="metric-value">₹12.54L</p><p class="metric-sub">€13,200</p></div>
+  <div class="metric"><p class="metric-label">Flight + visa + setup</p><p class="metric-value">₹1.71L</p><p class="metric-sub">€1,800</p></div>
+  <div class="metric"><p class="metric-label">Emergency buffer</p><p class="metric-value">₹1.9L</p><p class="metric-sub">10% safety net</p></div>
+</div>
+<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+  <span style="font-size:14px; color:var(--color-text-secondary);">Grand total needed</span>
+  <span style="font-size:22px; font-weight:500;">₹21.6L <span style="font-size:14px; color:var(--color-text-secondary);">≈ €22,750</span></span>
+</div>
+
+<hr class="divider">
+
+<p class="sec-label">Step 2 — your own savings (how much you can self-fund)</p>
+<div class="slider-row">
+  <span class="slider-label">Your savings</span>
+  <input type="range" min="0" max="15" step="1" value="3" id="savings" style="flex:1;">
+  <span class="slider-val" id="savings-out">₹3L</span>
+</div>
+<p style="font-size:12px; color:var(--color-text-secondary); margin: -4px 0 12px;">Tip: Keep at least ₹2–3L in India as backup. Don't drain everything.</p>
+
+<p class="sec-label">Step 3 — scholarship scenario</p>
+<div>
+  <button class="sch-btn active" onclick="setScholarship(0, this)">No scholarship</button>
+  <button class="sch-btn" onclick="setScholarship(5, this)">JN Tata only (₹5L 0% loan)</button>
+  <button class="sch-btn" onclick="setScholarship(10, this)">JN Tata + UPF waiver (₹10L)</button>
+  <button class="sch-btn" onclick="setScholarship(21.6, this)">Inlaks wins (fully funded!)</button>
+  <button class="sch-btn" onclick="setScholarship(21.6, this, true)">Erasmus Mundus (fully funded!)</button>
+</div>
+<div id="sch-note" style="font-size:12px; color:var(--color-text-secondary); margin: 4px 0 14px;"></div>
+
+<hr class="divider">
+
+<p class="sec-label">Step 4 — recommended loan amount</p>
+
+<div class="scenario-grid" id="scenario-grid"></div>
+
+<hr class="divider">
+
+<p class="sec-label">Step 5 — with vs without land collateral</p>
+<div id="collateral-section"></div>
+
+<hr class="divider">
+
+<p class="sec-label">Step 6 — EMI reality check post-graduation</p>
+<div class="slider-row">
+  <span class="slider-label">Post-MSc salary</span>
+  <input type="range" min="30" max="80" step="5" value="40" id="salary" style="flex:1;">
+  <span class="slider-val" id="salary-out">€40k/yr</span>
+</div>
+<div id="emi-section"></div>
+
+</div>
+
+<script>
+const TOTAL = 21.6;
+let schAmount = 0;
+let schFull = false;
+
+function fmt(n) { return '₹' + n.toFixed(1) + 'L'; }
+function fmtInt(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+function getSavings() { return parseFloat(document.getElementById('savings').value); }
+function getSalaryEUR() { return parseFloat(document.getElementById('salary').value) * 1000; }
+
+function setScholarship(amt, btn, full) {
+  schAmount = amt;
+  schFull = !!full;
+  document.querySelectorAll('.sch-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const notes = {
+    0: 'No scholarship assumed. Full loan needed minus your savings.',
+    5: 'JN Tata gives ₹5L as interest-free loan — counts as scholarship since 0% rate vs SBI\'s 10%.',
+    10: 'JN Tata ₹5L + estimated UPF partial waiver ~₹5L (varies). Conservative estimate.',
+    21.6: full ? 'Erasmus Mundus fully funds tuition + €1,400/month living. Zero loan needed!' : 'Inlaks covers tuition + living up to $120,000. Zero SBI loan needed!'
+  };
+  document.getElementById('sch-note').textContent = notes[amt] || '';
+  render();
+}
+
+function render() {
+  const savings = getSavings();
+  const gap = Math.max(0, TOTAL - schAmount - savings);
+  const salaryEUR = getSalaryEUR();
+
+  const schNote = document.getElementById('sch-note');
+
+  const scenarioGrid = document.getElementById('scenario-grid');
+  if (schFull || schAmount >= TOTAL) {
+    scenarioGrid.innerHTML = `
+      <div class="sc-card best" style="grid-column: 1/-1;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+          <span class="sc-title">Loan needed</span>
+          <span class="badge badge-green">Dream scenario</span>
+        </div>
+        <p class="sc-amt" style="color:#1D9E75;">₹0L</p>
+        <p class="sc-detail">Fully funded. No SBI loan required at all.</p>
+        <p class="sc-detail">Keep your savings in FD — earn ~7% while studying.</p>
+        <p class="sc-detail">Apply anyway for SBI pre-sanction as backup — it's free insurance.</p>
+      </div>`;
+    document.getElementById('collateral-section').innerHTML = `<div class="good">No collateral needed since no loan is required. Congratulations — this is the ideal outcome!</div>`;
+  } else {
+    const loanNeeded = gap;
+    const loanWithBuffer = Math.min(loanNeeded + 2, 25);
+    const loanSafe = Math.min(loanNeeded, 22);
+
+    scenarioGrid.innerHTML = `
+      <div class="sc-card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+          <span class="sc-title">Minimum loan</span>
+          <span class="badge badge-amber">Tight</span>
+        </div>
+        <p class="sc-amt">${fmt(loanNeeded)}</p>
+        <p class="sc-detail">Covers exact gap: Total ${fmt(TOTAL)} - Savings ${fmt(savings)} - Scholarship ${fmt(schAmount)}</p>
+        <p class="sc-detail">Risk: no buffer if costs run over.</p>
+      </div>
+      <div class="sc-card best">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+          <span class="sc-title">Recommended loan</span>
+          <span class="badge badge-green">Sweet spot</span>
+        </div>
+        <p class="sc-amt" style="color:#1D9E75;">${fmt(Math.min(loanWithBuffer, 25))}</p>
+        <p class="sc-detail">Gap + ₹2L buffer for unexpected costs.</p>
+        <p class="sc-detail">Comfortable without over-borrowing.</p>
+      </div>
+      <div class="sc-card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+          <span class="sc-title">Maximum to consider</span>
+          <span class="badge badge-blue">Safe ceiling</span>
+        </div>
+        <p class="sc-amt">₹25L</p>
+        <p class="sc-detail">Only if you want extra runway for part-time gap months.</p>
+        <p class="sc-detail">Don't borrow more than this for UPF SMC.</p>
+      </div>`;
+
+    const needsCollateral = loanWithBuffer > 7.5;
+    const colSection = document.getElementById('collateral-section');
+    colSection.innerHTML = `
+      <div class="card">
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:200px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+              <i class="ti ti-home" style="font-size:18px; color:#185FA5;" aria-hidden="true"></i>
+              <span style="font-size:14px; font-weight:500;">With land/property collateral</span>
+            </div>
+            <div class="row"><span class="row-label">Interest rate</span><span class="row-val" style="color:#1D9E75;">9.15–10.65%</span></div>
+            <div class="row"><span class="row-label">Max loan</span><span class="row-val">Up to ₹1.5 Cr</span></div>
+            <div class="row"><span class="row-label">Your loan (recommended)</span><span class="row-val">${fmt(Math.min(loanWithBuffer,25))}</span></div>
+            <div class="row"><span class="row-label">Processing fee</span><span class="row-val">₹10,000 + GST</span></div>
+            <div class="row"><span class="row-label">Approval time</span><span class="row-val">15–25 days</span></div>
+            <div class="row"><span class="row-label">Collateral needed?</span><span class="row-val">${needsCollateral ? 'Yes (above ₹7.5L)' : 'No'}</span></div>
+            <div style="margin-top:10px;" class="${needsCollateral ? 'good' : 'good'}">
+              ${needsCollateral ? 'Property collateral unlocks lowest 9.15% rate. If family has any property, use it — saves lakhs over 10 years.' : 'No collateral needed at this amount.'}
+            </div>
+          </div>
+          <div style="flex:1; min-width:200px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+              <i class="ti ti-x" style="font-size:18px; color:#854F0B;" aria-hidden="true"></i>
+              <span style="font-size:14px; font-weight:500;">Without land (no collateral)</span>
+            </div>
+            <div class="row"><span class="row-label">Lender options</span><span class="row-val">Credila / Avanse</span></div>
+            <div class="row"><span class="row-label">Interest rate</span><span class="row-val" style="color:#854F0B;">11–14%</span></div>
+            <div class="row"><span class="row-label">Max unsecured</span><span class="row-val">Up to ₹45–75L</span></div>
+            <div class="row"><span class="row-label">Your loan (recommended)</span><span class="row-val">${fmt(Math.min(loanWithBuffer,25))}</span></div>
+            <div class="row"><span class="row-label">Approval time</span><span class="row-val">3–5 days</span></div>
+            <div class="row"><span class="row-label">Extra interest cost</span><span class="row-val" style="color:#A32D2D;">+₹3–6L over 10 yrs</span></div>
+            <div style="margin-top:10px;" class="warn">
+              At 12% vs 9.5%, you pay ~₹4–5L more in interest over 10 years on a ₹${Math.round(loanWithBuffer)}L loan. Use land if possible.
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  renderEMI(salaryEUR, gap);
+}
+
+function renderEMI(salaryEUR, gap) {
+  const savings = getSavings();
+  const loanAmt = schAmount >= TOTAL ? 0 : Math.min(gap + 2, 25);
+  const section = document.getElementById('emi-section');
+
+  if (loanAmt === 0) {
+    section.innerHTML = `<div class="good">No EMI needed — fully funded! Your entire post-MSc salary is yours to keep and grow.</div>`;
+    return;
+  }
+
+  const P = loanAmt * 100000;
+  const r9 = 9.5 / 100 / 12;
+  const r12 = 12 / 100 / 12;
+  const n10 = 120;
+  const n15 = 180;
+
+  function emi(P, r, n) { return P * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1); }
+
+  const emi9_10 = emi(P, r9, n10);
+  const emi9_15 = emi(P, r9, n15);
+  const emi12_10 = emi(P, r12, n10);
+
+  const netMonthlyEUR = salaryEUR * 0.63 / 12;
+  const emiEUR_9 = emi9_10 / 95;
+  const emiEUR_12 = emi12_10 / 95;
+  const pct9 = (emiEUR_9 / netMonthlyEUR * 100);
+  const pct12 = (emiEUR_12 / netMonthlyEUR * 100);
+
+  const getRating = (p) => p < 12 ? ['Excellent', 'badge-green'] : p < 20 ? ['Manageable', 'badge-amber'] : ['Heavy', 'badge-red'];
+  const [r9label, r9badge] = getRating(pct9);
+  const [r12label, r12badge] = getRating(pct12);
+
+  section.innerHTML = `
+    <div class="grid2" style="margin-bottom:10px;">
+      <div class="metric"><p class="metric-label">Loan amount</p><p class="metric-value">${fmt(loanAmt)}</p></div>
+      <div class="metric"><p class="metric-label">Post-MSc gross salary</p><p class="metric-value">€${Math.round(salaryEUR/1000)}k/yr</p></div>
+      <div class="metric"><p class="metric-label">Est. net take-home</p><p class="metric-value">€${Math.round(netMonthlyEUR)}/mo</p><p class="metric-sub">~63% of gross, Spain</p></div>
+    </div>
+    <div class="card">
+      <div class="row" style="font-weight:500;">
+        <span>Scenario</span><span>Monthly EMI</span><span>EMI in EUR</span><span>% of net salary</span>
+      </div>
+      <div class="row">
+        <span class="row-label">SBI 9.5%, 10 yrs (with land)</span>
+        <span>${fmtInt(emi9_10)}</span>
+        <span>€${Math.round(emiEUR_9)}</span>
+        <span><span class="badge ${r9badge}">${Math.round(pct9)}% — ${r9label}</span></span>
+      </div>
+      <div class="row">
+        <span class="row-label">SBI 9.5%, 15 yrs (with land)</span>
+        <span>${fmtInt(emi9_15)}</span>
+        <span>€${Math.round(emi9_15/95)}</span>
+        <span><span class="badge badge-green">${Math.round(emi9_15/95/netMonthlyEUR*100)}% — Excellent</span></span>
+      </div>
+      <div class="row">
+        <span class="row-label">Credila 12%, 10 yrs (no land)</span>
+        <span>${fmtInt(emi12_10)}</span>
+        <span>€${Math.round(emiEUR_12)}</span>
+        <span><span class="badge ${r12badge}">${Math.round(pct12)}% — ${r12label}</span></span>
+      </div>
+    </div>
+    <p style="font-size:12px; color:var(--color-text-secondary); margin-top:8px;">Golden rule: keep EMI under 15% of net take-home. SBI with collateral keeps you well within this. Moratorium = no EMI during 1-yr course + 6 months after.</p>`;
+}
+
+document.getElementById('savings').addEventListener('input', function() {
+  document.getElementById('savings-out').textContent = '₹' + Math.round(this.value) + 'L';
+  render();
+});
+
+document.getElementById('salary').addEventListener('input', function() {
+  document.getElementById('salary-out').textContent = '€' + Math.round(this.value) + 'k/yr';
+  render();
+});
+
+render();
+document.getElementById('sch-note').textContent = 'No scholarship assumed. Full loan needed minus your savings.';
+</script>

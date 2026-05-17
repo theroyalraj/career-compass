@@ -1,0 +1,24 @@
+{
+  "name": "sensei",
+  "private": true,
+  "type": "module",
+  "description": "Sensei - AI Tutor voice assistant for career coaching",
+  "workspaces": [
+    "skill-gateway",
+    "pc-agent"
+  ],
+  "scripts": {
+    "start:gateway": "node skill-gateway/src/server.js",
+    "start:agent": "node pc-agent/src/server.js",
+    "dev:gateway": "npm run dev --prefix skill-gateway",
+    "dev:agent": "npm run dev --prefix pc-agent",
+    "start:all": "node scripts/start.mjs",
+    "restart:local": "powershell -ExecutionPolicy Bypass -File scripts/restart-local.ps1",
+    "restart:skip": "powershell -ExecutionPolicy Bypass -File scripts/restart-local.ps1 -SkipDocker",
+    "docker:postgres:up": "docker compose up -d sensei-postgres",
+    "voice:daemon": "python scripts/sensei-listen.py",
+    "voice:speak": "python skill-gateway/scripts/sensei-speak.py",
+    "test:pc-agent": "npm test --prefix pc-agent",
+    "install:all": "npm install"
+  }
+}

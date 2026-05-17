@@ -26,7 +26,18 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
+.dev-port
+
+# media files
+/public/ms_smc_videos/
+*.mkv
+*.webm
+*.mp4
+*.avi
+*.mp3
+*.wav
 
 # vercel
 .vercel

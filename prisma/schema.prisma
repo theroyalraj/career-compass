@@ -1,0 +1,491 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Trajectories & Timeline ───────────────────────────────
+model Trajectory {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean     @default(false)
+  color       String      @default("#7c3aed")
+  startDate   DateTime
+  targetDate  DateTime
+  milestones  Milestone[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Milestone {
+  id            String     @id @default(cuid())
+  trajectoryId  String
+  trajectory    Trajectory @relation(fields: [trajectoryId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  category      String
+  status        String     @default("planned")
+  targetDate    DateTime
+  completedAt   DateTime?
+  dependencies  String[]   @default([])
+  order         Int        @default(0)
+  weight        Int        @default(1)
+  bucket        String?
+}
+
+model PlanPeriod {
+  id        String   @id @default(cuid())
+  kind      String
+  startsOn  DateTime
+  themeMd   String?
+  goalsMd   String?
+  reviewMd  String?
+
+  @@unique([kind, startsOn])
+}
+
+// ─── Tasks ───────────────────────────────────────────────────
+model Task {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  status       String    @default("todo")
+  priority     String    @default("med")
+  category     String?
+  tags         String[]  @default([])
+  dueDate      DateTime?
+  startDate    DateTime?
+  estimateMin  Int?
+  actualMin    Int?
+  recurrence   String?
+  parentId     String?
+  parent       Task?     @relation("Subtasks", fields: [parentId], references: [id])
+  subtasks     Task[]    @relation("Subtasks")
+  milestoneId  String?
+  jobId        String?
+  projectId    String?
+  learningId   String?
+  learning     LearningItem? @relation(fields: [learningId], references: [id])
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// ─── Habits ─────────────────────────────────────────────────
+model Habit {
+  id        String     @id @default(cuid())
+  name      String
+  emoji     String?
+  cadence   String
+  targetMin Int?
+  color     String     @default("#10b981")
+  archived  Boolean    @default(false)
+  logs      HabitLog[]
+}
+
+model HabitLog {
+  id        String   @id @default(cuid())
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date      DateTime
+  done      Boolean  @default(true)
+  minutes   Int?
+  note      String?
+
+  @@unique([habitId, date])
+}
+
+// ─── Routines ──────────────────────────────────────────────
+model RoutineBlock {
+  id        String  @id @default(cuid())
+  dayOfWeek Int
+  startMin  Int
+  endMin    Int
+  label     String
+  category  String
+  color     String?
+}
+
+// ─── Learning ──────────────────────────────────────────────
+model LearningItem {
+  id           String    @id @default(cuid())
+  title        String
+  kind         String
+  provider     String?
+  url          String?
+  topic        String[]  @default([])
+  status       String    @default("backlog")
+  progressPct  Int       @default(0)
+  rating       Int?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  totalMin     Int?
+  hoursLogged  Float     @default(0)
+  notesMd      String?
+  tasks        Task[]
+  createdAt    DateTime  @default(now())
+}
+
+// ─── Projects ────────────────────────────────────────────────
+model Project {
+  id          String    @id @default(cuid())
+  name        String
+  tagline     String?
+  status      String    @default("idea")
+  repoUrl     String?
+  demoUrl     String?
+  blogUrl     String?
+  stack       String[]  @default([])
+  audioMl     Boolean   @default(false)
+  readmeMd    String?
+  coverImg    String?
+  startedAt   DateTime?
+  shippedAt   DateTime?
+  hours       Float     @default(0)
+  metrics     Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ─── Jobs ────────────────────────────────────────────────────
+model Job {
+  id             String     @id @default(cuid())
+  company        String
+  role           String
+  location       String?
+  country        String?
+  band           String?
+  source         String?
+  jdUrl          String?
+  jdSnapshot     String?
+  visaSponsor    String?
+  salaryMin      Int?
+  salaryMax      Int?
+  currency       String?    @default("EUR")
+  status         String     @default("to_apply")
+  appliedAt      DateTime?
+  lastContactAt  DateTime?
+  nextFollowUp   DateTime?
+  contactId      String?
+  contact        Contact?   @relation(fields: [contactId], references: [id])
+  notesMd        String?
+  resumeId       String?
+  coverLetterId  String?
+  tags           String[]   @default([])
+  events         JobEvent[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model JobEvent {
+  id     String   @id @default(cuid())
+  jobId  String
+  job    Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  date   DateTime @default(now())
+  kind   String
+  body   String?
+}
+
+// ─── Networking CRM ─────────────────────────────────────────
+model Contact {
+  id        String    @id @default(cuid())
+  name      String
+  company   String?
+  role      String?
+  location  String?
+  linkedin  String?
+  email     String?
+  type      String?
+  warmth    Int       @default(1)
+  tags      String[]  @default([])
+  lastTouch DateTime?
+  nextTouch DateTime?
+  notesMd   String?
+  touches   Touch[]
+  jobs      Job[]
+  createdAt DateTime  @default(now())
+}
+
+model Touch {
+  id        String   @id @default(cuid())
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  channel   String
+  outcome   String?
+  bodyMd    String?
+}
+
+model OutreachTemplate {
+  id         String   @id @default(cuid())
+  name       String
+  audience   String
+  bodyMd     String
+  variables  String[] @default([])
+  updatedAt  DateTime @updatedAt
+}
+
+// ─── Interview prep ────────────────────────────────────────
+model InterviewQuestion {
+  id           String    @id @default(cuid())
+  topic        String
+  subTopic     String?
+  prompt       String
+  answerMd     String?
+  difficulty   Int       @default(2)
+  lastReviewed DateTime?
+  confidence   Int       @default(1)
+  source       String?
+  tags         String[]  @default([])
+}
+
+model MockInterview {
+  id           String   @id @default(cuid())
+  date         DateTime @default(now())
+  partner      String?
+  topic        String
+  durationMin  Int
+  rating       Int?
+  notesMd      String?
+  recordingUrl String?
+}
+
+model SystemDesignCase {
+  id         String   @id @default(cuid())
+  title      String
+  domain     String
+  promptMd   String
+  solutionMd String?
+  diagramSvg String?
+  tags       String[] @default([])
+}
+
+// ─── Visa / relocation ─────────────────────────────────────
+model VisaTrack {
+  id          String         @id @default(cuid())
+  country     String
+  pathway     String
+  status      String         @default("planning")
+  startedAt   DateTime?
+  filedAt     DateTime?
+  decisionAt  DateTime?
+  notesMd     String?
+  documents   VisaDocument[]
+}
+
+model VisaDocument {
+  id        String    @id @default(cuid())
+  trackId   String
+  track     VisaTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  name      String
+  status    String    @default("missing")
+  fileUrl   String?
+  expiresAt DateTime?
+  notes     String?
+}
+
+model RelocationChecklist {
+  id       String    @id @default(cuid())
+  country  String
+  item     String
+  category String
+  done     Boolean   @default(false)
+  dueDate  DateTime?
+  notes    String?
+}
+
+// ─── Finance ───────────────────────────────────────────────
+model Account {
+  id               String        @id @default(cuid())
+  name             String
+  kind             String
+  currency         String        @default("INR")
+  openingBalance   Float         @default(0)
+  tx               Transaction[]
+}
+
+model Transaction {
+  id               String   @id @default(cuid())
+  accountId        String
+  account          Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  date             DateTime
+  amount           Float
+  currency         String   @default("INR")
+  type             String
+  category         String
+  merchant         String?
+  note             String?
+  recurring        Boolean  @default(false)
+  recurrenceRule   String?
+}
+
+model BudgetLine {
+  id            String @id @default(cuid())
+  category      String
+  monthlyAmount Float
+  currency      String @default("INR")
+}
+
+model SavingsGoal {
+  id            String   @id @default(cuid())
+  name          String
+  targetAmount  Float
+  currency      String
+  targetDate    DateTime?
+  currentAmount Float    @default(0)
+  notesMd       String?
+}
+
+model FxRate {
+  id        String   @id @default(cuid())
+  base      String
+  quote     String
+  rate      Float
+  fetchedAt DateTime @default(now())
+
+  @@unique([base, quote, fetchedAt])
+  @@index([base, quote])
+}
+
+model SalaryScenario {
+  id               String   @id @default(cuid())
+  label            String
+  country          String
+  grossAnnual      Float
+  currency         String
+  taxClass         String?
+  hasChurchTax     Boolean  @default(false)
+  publicHealthRate Float?
+  pensionRate      Float?
+  expectedNet      Float?
+  notes            String?
+  computedAt       DateTime @default(now())
+}
+
+model CityCOL {
+  id             String   @id @default(cuid())
+  city           String
+  country        String
+  rentMin        Float
+  rentMax        Float
+  groceriesMin   Float
+  groceriesMax   Float
+  transport      Float
+  utilities      Float
+  internet       Float
+  fitness        Float
+  diningPerMeal  Float
+  totalMin       Float
+  totalMax       Float
+  currency       String   @default("EUR")
+  source         String?
+  updatedAt      DateTime @updatedAt
+
+  @@unique([city, country])
+}
+
+model Resume {
+  id              String   @id @default(cuid())
+  name            String
+  variant         String?
+  contentJson     Json
+  targetCompany   String?
+  targetRole      String?
+  pdfPath         String?
+  updatedAt       DateTime @updatedAt
+}
+
+model CoverLetter {
+  id              String   @id @default(cuid())
+  name            String
+  bodyMd          String
+  targetCompany   String?
+  targetRole      String?
+  jobId           String?
+  variables       String[] @default([])
+  updatedAt       DateTime @updatedAt
+}
+
+model BlogPost {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  status        String    @default("idea")
+  audience      String?
+  outlineMd     String?
+  bodyMd        String?
+  publishedUrl  String?
+  publishedAt   DateTime?
+  tags          String[]  @default([])
+}
+
+model ReadingItem {
+  id             String   @id @default(cuid())
+  title          String
+  author         String?
+  url            String?
+  kind           String
+  status         String   @default("queue")
+  rating         Int?
+  highlightsMd   String?
+  addedAt        DateTime @default(now())
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  name        String
+  kind        String
+  city        String?
+  country     String?
+  startDate   DateTime
+  endDate     DateTime?
+  url         String?
+  cfpDeadline DateTime?
+  attending   Boolean   @default(false)
+  notesMd     String?
+}
+
+model Settings {
+  id                String   @id @default("singleton")
+  baseCurrency      String   @default("INR")
+  displayCurrency   String   @default("EUR")
+  theme             String   @default("dark")
+  weekStartsOn      Int      @default(1)
+  targetCountries   String[] @default(["DE", "ES", "SE", "FI", "NL"])
+  workdayStartMin   Int      @default(540)
+  workdayEndMin     Int      @default(1080)
+  germanLevel       String   @default("A0")
+  spanishLevel      String   @default("A0")
+  englishLevel      String   @default("C1")
+  /// companies = dream employers; colleges = dream schools / programs
+  dreamListMode     String   @default("companies")
+  apiKeys           Json?
+}
+
+model DreamCompany {
+  id        String   @id @default(cuid())
+  name      String
+  country   String?
+  city      String?
+  url       String?
+  notes     String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DreamCollege {
+  id        String   @id @default(cuid())
+  name      String
+  country   String?
+  city      String?
+  url       String?
+  notes     String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
