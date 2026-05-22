@@ -1,5 +1,7 @@
 # Stop the previous Next.js dev port and start again (Windows PowerShell).
-# Starts Postgres with "docker compose up -d db" only (never "compose down" or -v here).
+# Starts Postgres via "docker compose up -d db" (data volume preserved).
+# Restarts Redis (stops container → discards all cache → starts fresh).
+# NEVER touches the app container or runs compose down / -v.
 # Run from repo root: npm run restart
 # Or: powershell -ExecutionPolicy Bypass -NoProfile -File scripts/dev-restart.ps1
 
@@ -34,6 +36,28 @@ Write-Host "docker compose up -d db (data volume preserved; never tearing down s
 docker compose up -d db
 if ($LASTEXITCODE -ne 0) {
   Write-Warning "docker compose up -d db failed - is Docker Desktop running?"
+}
+
+# ── Redis: stop existing container (flushes in-memory cache) then start fresh ──
+Write-Host "Restarting Redis (clears all cache)..." -ForegroundColor Magenta
+docker compose stop redis 2>$null | Out-Null
+docker compose rm -f redis 2>$null | Out-Null
+docker compose up -d redis
+if ($LASTEXITCODE -ne 0) {
+  Write-Warning "Redis failed to start - continuing without cache layer."
+} else {
+  # Wait up to 30 s for Redis to become ready
+  $redisReady = $false
+  for ($r = 0; $r -lt 15; $r++) {
+    $ping = docker compose exec -T redis redis-cli ping 2>$null
+    if ($ping -eq "PONG") { $redisReady = $true; break }
+    Start-Sleep -Seconds 2
+  }
+  if ($redisReady) {
+    Write-Host "Redis is ready and cache is clean." -ForegroundColor Green
+  } else {
+    Write-Warning "Redis did not respond to PING in time - check 'docker compose logs redis'."
+  }
 }
 
 Write-Host "Waiting for Postgres (localhost:5435)..."

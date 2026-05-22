@@ -1,5 +1,5 @@
 # Barcelona MSc SMC — Full Execution Plan
-## Utkarsh | UPF Barcelona | MSc Sound & Music Computing | Sept 2026 Intake
+## Utkarsh | UPF Barcelona | MSc Sound & Music Computing | Sept 2027 Intake
 > Last updated: May 2026 · Living document — update as milestones are hit
 
 ---
@@ -16,13 +16,13 @@ Work through each Phase in order. Every task has a checkbox — tick it off when
 |---|---|---|
 | -1 — Application | Pre-admission | ✅ Done / 🟡 In progress |
 | 0 — Foundation | May 2026 (now) | 🟡 In progress |
-| 1 — Scholarships | May–Aug 2026 | ⬜ Not started |
-| 2 — Loan | June–Aug 2026 | ⬜ Not started |
-| 3 — Visa & Pre-Departure | Jul–Sep 2026 | ⬜ Not started |
-| 4 — Arrival & Setup | Sep 2026 | ⬜ Not started |
-| 5 — During Study | Sep 2026 – Sep 2027 | ⬜ Future |
-| 6 — Job Search | Mar 2027+ | ⬜ Future |
-| 7 — Post-Grad Finance | Oct 2027+ | ⬜ Future |
+| 1 — Scholarships | Nov 2026 – March 2027 | ⬜ Not started |
+| 2 — Loan | June–Aug 2027 | ⬜ Not started |
+| 3 — Visa & Pre-Departure | Jul–Sep 2027 | ⬜ Not started |
+| 4 — Arrival & Setup | Sep 2027 | ⬜ Not started |
+| 5 — During Study | Sep 2027 – Sep 2028 | ⬜ Future |
+| 6 — Job Search | Mar 2028+ | ⬜ Future |
+| 7 — Post-Grad Finance | Oct 2028+ | ⬜ Future |
 
 ---
 
@@ -104,7 +104,7 @@ Fill this out honestly:
 
 ---
 
-## Phase 1 — Scholarships (May–August 2026)
+## Phase 1 — Scholarships (November 2026 – March 2027)
 
 **Goal:** Reduce the loan principal as much as possible. Every ₹1L you don't borrow saves ~₹20–25k in total interest over 10 years.
 
@@ -131,7 +131,7 @@ Apply to all of these in parallel — results come at different times:
 
 **JN Tata Endowment**
 - [ ] Visit jntataendowment.org and download application form
-- [ ] Confirm if deadline for 2026–27 cycle has passed; if so, apply for 2027 renewal
+- [ ] Confirm if deadline for 2027–28 cycle has passed; if so, apply for 2028 renewal
 - [ ] Note: JN Tata gives a loan at 0% interest — this is still a loan but treated like a scholarship since SBI charges 9.5%+; the 0% difference is your scholarship
 - [ ] Prepare personal statement, financial need proof, academic transcripts
 - [ ] Submit and note reference number
@@ -155,7 +155,7 @@ Apply to all of these in parallel — results come at different times:
 
 ---
 
-## Phase 2 — Loan Application (June–August 2026)
+## Phase 2 — Loan Application (June–August 2027)
 
 **Goal:** Get SBI Global Ed-Vantage sanctioned and disbursed in time for Barcelona arrival.
 
@@ -212,13 +212,13 @@ Apply to all of these in parallel — results come at different times:
 - [ ] **Day 3–5:** Address all deficiencies; resubmit
 - [ ] **Day 5–12:** Property valuation (SBI-arranged) + legal opinion (SBI-arranged)
 - [ ] **Day 12–20:** Credit appraisal and credit committee review
-- [ ] **Day 20–25:** Sanction letter issued ← target this by **15 July 2026**
+- [ ] **Day 20–25:** Sanction letter issued ← target this by **15 July 2027**
 - [ ] **Post-sanction:** Accept sanction terms; execute loan agreement; submit original property documents
 - [ ] **Disbursement:** First tranche released; usually within 7–10 days of agreement signing
 
 ### 2.4 If SBI takes too long — parallel Credila application
 
-- [ ] If SBI has not given a sanction letter by 10 July, immediately apply to HDFC Credila (credila.com)
+- [ ] If SBI has not given a sanction letter by 10 July 2027, immediately apply to HDFC Credila (credila.com)
 - [ ] Credila approval: 3–5 days (no collateral needed, faster process)
 - [ ] Accept Credila as backup; withdraw if SBI comes through in time
 - [ ] Note: Credila rate is 12–13% vs SBI 9.5%; use only if SBI timeline blows up
@@ -242,7 +242,7 @@ Use the loan calculator widget (utkarsh_loan_calculator.html) for your specific 
 
 ---
 
-## Phase 3 — Visa & Pre-Departure (July–September 2026)
+## Phase 3 — Visa & Pre-Departure (July–September 2027)
 
 **Goal:** Spain student visa (D-type) approved and in hand before departure.
 
@@ -300,7 +300,7 @@ Spain requires several documents to be apostilled (Indian government attestation
 
 ---
 
-## Phase 4 — Arrival & Setup in Barcelona (September 2026)
+## Phase 4 — Arrival & Setup in Barcelona (September 2027)
 
 **Goal:** Legally registered, financially operational, and enrolled — within the first 2 weeks.
 
@@ -337,7 +337,7 @@ This is your Spanish residency card — **required for almost everything** (bank
 
 ---
 
-## Phase 5 — During Study Year (October 2026 – September 2027)
+## Phase 5 — During Study Year (October 2027 – September 2028)
 
 **Goal:** Excellent academic performance + strong audio/ML portfolio + early career positioning.
 
@@ -345,7 +345,7 @@ This is your Spanish residency card — **required for almost everything** (bank
 
 **When can you legally start working?**
 
-Spain's long-stay student D-visa allows up to 30 hours/week of work. You do NOT need a separate work permit, BUT you must have your **TIE (Tarjeta de Identidad de Extranjero)** in hand first. TIE takes 4–6 weeks to process after arrival. Realistic start date: **Month 2–3 (November/December 2026)**.
+Spain's long-stay student D-visa allows up to 30 hours/week of work. You do NOT need a separate work permit, BUT you must have your **TIE (Tarjeta de Identidad de Extranjero)** in hand first. TIE takes 4–6 weeks to process after arrival. Realistic start date: **Month 2–3 (November/December 2027)**.
 
 **Work options ranked by hourly rate:**
 
@@ -355,7 +355,7 @@ Spain's long-stay student D-visa allows up to 30 hours/week of work. You do NOT 
 | Audio/ML freelancing | €15–30/hr | 10–15 | Builds portfolio; harder to find initially |
 | Online tutoring (programming, music) | €15–25/hr | 5–10 | Preply, Superprof; flexible schedule |
 | UPF Research Assistant (audio/ML lab) | €9–12/hr | 10–15 | Lower pay but huge career value; ask professors Month 1 |
-| Curricular internship (registered with UPF) | €800–1,200/month | Up to full-time | Best for CV; apply December 2026 for Feb 2027 start |
+| Curricular internship (registered with UPF) | €800–1,200/month | Up to full-time | Best for CV; apply December 2027 for Feb 2028 start |
 | On-campus work (library, lab monitor) | €9–11/hr | 5–10 | Easiest to get; start here in Month 2 |
 
 **Financial impact scenarios:**
@@ -400,12 +400,12 @@ At the optimistic scenario, you earn enough to cover all Barcelona living costs 
 - [ ] Update LinkedIn to "MSc Sound & Music Computing @ UPF Barcelona"
 - [ ] Start thesis project GitHub repo by Month 2; keep commits regular
 - [ ] Write 1 blog post per month on your audio/ML learning (Medium/Substack)
-- [ ] By December 2026: begin applying to summer internships at Spotify, SoundCloud, Dolby, Native Instruments
+- [ ] By December 2027: begin applying to summer internships at Spotify, SoundCloud, Dolby, Native Instruments
 - [ ] Network at Barcelona tech events: Mobile World Congress periphery events, Barcelona ML meetups, UPF-organized industry days
 
 ---
 
-## Phase 6 — Job Search & Career Transition (March 2027 onwards)
+## Phase 6 — Job Search & Career Transition (March 2028 onwards)
 
 **Goal:** Job offer in hand before graduation, ideally in EU audio/ML or backend-to-audio role.
 
@@ -413,12 +413,12 @@ At the optimistic scenario, you earn enough to cover all Barcelona living costs 
 
 | Month | Action |
 |---|---|
-| Mar 2027 | First round of applications: Spotify, SoundCloud, Native Instruments, Dolby |
-| Apr 2027 | Broaden to ML/recommendation roles at EU tech companies |
-| May 2027 | Second wave + networking push (ISMIR, LinkedIn outreach to UPF alumni) |
-| Jun 2027 | Thesis submission; begin full-time job search |
-| Jul–Aug 2027 | Interview preparation, system design mock interviews |
-| Sep 2027 | Graduation |
+| Mar 2028 | First round of applications: Spotify, SoundCloud, Native Instruments, Dolby |
+| Apr 2028 | Broaden to ML/recommendation roles at EU tech companies |
+| May 2028 | Second wave + networking push (ISMIR, LinkedIn outreach to UPF alumni) |
+| Jun 2028 | Thesis submission; begin full-time job search |
+| Jul–Aug 2028 | Interview preparation, system design mock interviews |
+| Sep 2028 | Graduation |
 
 ### 6.2 Spain work authorization after graduation
 
@@ -442,13 +442,13 @@ Based on 2024–25 market data in EU audio/tech:
 
 ---
 
-## Phase 7 — Post-Graduation Financial Management (October 2027+)
+## Phase 7 — Post-Graduation Financial Management (October 2028+)
 
 **Goal:** Start EMI on schedule without financial stress; build net worth in EUR.
 
 ### 7.1 EMI strategy
 
-- [ ] EMI begins 6 months after course end — approximately **April 2028** (if course ends Oct 2027)
+- [ ] EMI begins 6 months after course end — approximately **April 2029** (if course ends Oct 2028)
 - [ ] At SBI 9.5%, ₹22L loan, 10-year tenure: approximately ₹28,700/month (~€300/month at €1=₹95)
 - [ ] At €40k/year net salary in Spain (~€2,100/month net): EMI = ~14% of net take-home — **manageable**
 - [ ] Consider pre-paying 1–2 extra EMIs per year using year-end bonus; SBI allows partial prepayment without penalty (confirm with your branch — terms vary)
@@ -482,28 +482,28 @@ Based on 2024–25 market data in EU audio/tech:
 - [ ] Start collecting co-applicant documents (ITR, Form 16)
 - [ ] Get Encumbrance Certificate process started at sub-registrar office
 
-### Do in June 2026
+### Do in June 2027
 - [ ] Apply for all scholarships with open deadlines (Inlaks, JN Tata)
 - [ ] Contact WeMakeScholars; schedule SBI consultation call
 - [ ] Submit complete SBI document package (target: June 10–15)
 - [ ] Apply to Credila in parallel as backup (June 15)
 - [ ] Book Spanish Consulate visa appointment (don't wait for loan sanction)
 
-### Do in July 2026
+### Do in July 2027
 - [ ] Follow up on SBI application daily (ask for specific next step and timeline)
 - [ ] Book temporary Barcelona accommodation (2 months, confirm in writing)
 - [ ] Begin apostille process for required documents
 - [ ] Get travel insurance covering Spain/Schengen
 - [ ] Book flight (aim for 3–5 days before course orientation)
 
-### Do in August 2026
+### Do in August 2027
 - [ ] Attend visa appointment with complete documentation
 - [ ] Receive visa; make 2 copies of passport + visa page
 - [ ] Contact UPF SMC incoming student group; find flatmates
 - [ ] Set up Wise account; do a test transfer
 - [ ] Confirm SBI first disbursal timing with branch
 
-### In Barcelona — first 2 weeks (September 2026)
+### In Barcelona — first 2 weeks (September 2027)
 - [ ] Book TIE appointment (cita previa) on Day 1
 - [ ] Get Empadronamiento (municipal registration) in Week 1
 - [ ] Open Spanish bank account

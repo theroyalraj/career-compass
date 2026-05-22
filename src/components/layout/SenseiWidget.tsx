@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Sparkles, Mic, Volume2, X, ChevronUp, Terminal, Flame } from "lucide-react";
+import { Sparkles, Mic, Volume2, X, Terminal, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type SenseiEvent = {

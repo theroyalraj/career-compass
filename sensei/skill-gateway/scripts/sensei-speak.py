@@ -163,26 +163,40 @@ def _find_ffplay() -> str | None:
 
 
 def play_audio(mp3_path: Path):
-    """Play MP3 file using ffplay or Windows media player."""
+    """Play MP3 file using ffplay or Windows MediaPlayer."""
     ffplay = _find_ffplay()
-    creation_flags = 0x08000000 if platform.system() == "Windows" else 0
+    creation_flags = 0x08000000 if platform.system() == "Windows" else 0  # CREATE_NO_WINDOW
 
     if ffplay:
-        cmd = [ffplay, "-nodisp", "-autoexit", "-loglevel", "error", str(mp3_path)]
-        subprocess.run(cmd, capture_output=True, timeout=120, creationflags=creation_flags)
+        cmd = [ffplay, "-nodisp", "-autoexit", "-loglevel", "quiet", str(mp3_path)]
+        subprocess.run(
+            cmd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=120,
+            creationflags=creation_flags
+        )
         return
 
     if platform.system() == "Windows":
-        # System.Media.SoundPlayer only supports WAV. We use System.Windows.Media.MediaPlayer for native MP3 support.
-        cmd = [
-            "powershell", "-NoProfile", "-Command",
+        # Use MediaPlayer for native MP3 — wait long enough for speech to finish
+        ps_script = (
             "Add-Type -AssemblyName PresentationCore; "
-            f"$player = New-Object System.Windows.Media.MediaPlayer; "
-            f"$player.Open('{mp3_path}'); "
-            f"$player.Play(); "
-            "Start-Sleep -Seconds 12"
-        ]
-        subprocess.run(cmd, capture_output=True, timeout=120, creationflags=creation_flags)
+            f"$p = New-Object System.Windows.Media.MediaPlayer; "
+            f"$p.Open([uri]'{mp3_path.as_uri()}'); "
+            "$p.Play(); "
+            "Start-Sleep -Seconds 30; "
+            "$p.Close()"
+        )
+        subprocess.run(
+            ["powershell", "-NoProfile", "-Command", ps_script],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=120,
+            creationflags=creation_flags
+        )
         return
 
     if platform.system() == "Darwin":

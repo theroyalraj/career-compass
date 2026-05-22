@@ -111,6 +111,95 @@ app.post('/voice/event', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── ElevenLabs Conversational AI Tool Webhooks ───────────────────────────────
+app.post('/sensei/tool', requireAuth, async (req, res) => {
+  const { tool_name, parameters = {} } = req.body || {};
+  if (!tool_name) return res.status(400).json({ error: 'Missing tool_name' });
+
+  try {
+    const { createClient } = await import('redis');
+    const r = createClient({ url: 'redis://127.0.0.1:6379' });
+    await r.connect();
+
+    let result = 'Done.';
+
+    if (tool_name === 'start_pomodoro') {
+      const nowSec = Math.floor(Date.now() / 1000);
+      await r.set('sensei:pomodoro:state', 'focus');
+      await r.set('sensei:pomodoro:started_ts', nowSec.toString());
+      await r.set('sensei:last_activity_ts', nowSec.toString());
+      result = 'Pomodoro focus session started. 25 minutes on the clock.';
+      broadcastEvent('pomodoro_start', { text: 'Focus session started.' });
+
+    } else if (tool_name === 'stop_pomodoro' || tool_name === 'cancel_pomodoro') {
+      await r.set('sensei:pomodoro:state', 'inactive');
+      result = 'Pomodoro timer cancelled.';
+      broadcastEvent('pomodoro_stop', { text: 'Pomodoro cancelled.' });
+
+    } else if (tool_name === 'set_silence_threshold') {
+      const seconds = parseInt(parameters.seconds || parameters.value || 180, 10);
+      if (seconds >= 10 && seconds <= 3600) {
+        await r.set('sensei:silence_threshold_sec', seconds.toString());
+        result = `Silence threshold set to ${seconds} seconds.`;
+      } else {
+        result = 'Value must be between 10 and 3600 seconds.';
+      }
+
+    } else if (tool_name === 'get_date_time') {
+      result = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+    } else {
+      result = `Tool '${tool_name}' is registered but has no handler yet.`;
+    }
+
+    await r.disconnect();
+    res.json({ ok: true, result });
+  } catch (e) {
+    console.error('[sensei/tool] error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── ElevenLabs Agent Status Endpoint ─────────────────────────────────────────
+app.get('/sensei/status', async (_req, res) => {
+  try {
+    const { createClient } = await import('redis');
+    const r = createClient({ url: 'redis://127.0.0.1:6379' });
+    await r.connect();
+
+    const pomoState = (await r.get('sensei:pomodoro:state')) || 'inactive';
+    const pomoStart = parseInt((await r.get('sensei:pomodoro:started_ts')) || '0', 10);
+    const lastActivity = parseInt((await r.get('sensei:last_activity_ts')) || '0', 10);
+    const silenceThreshold = parseInt((await r.get('sensei:silence_threshold_sec')) || '180', 10);
+    const micActive = (await r.get('sensei:heartbeat:mic')) === 'active';
+    const companionActive = (await r.get('sensei:heartbeat:companion')) === 'active';
+    const voiceAgentActive = (await r.get('sensei:heartbeat:voice_agent')) === 'active';
+
+    await r.disconnect();
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    const duration = pomoState === 'focus' ? 1500 : 300;
+    const elapsed = nowSec - pomoStart;
+    const remaining = pomoState !== 'inactive' ? Math.max(0, duration - elapsed) : 0;
+
+    res.json({
+      ok: true,
+      pomodoro_state: pomoState,
+      remaining_sec: remaining,
+      last_activity_ts: lastActivity,
+      silence_threshold_sec: silenceThreshold,
+      services: {
+        mic_daemon: micActive,
+        companion_daemon: companionActive,
+        voice_agent: voiceAgentActive,
+        brain_agent: true,
+      }
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── SSE stream (for web UI) ──────────────────────────────────────────────────
 app.get('/voice/stream', (req, res) => {
   res.writeHead(200, {

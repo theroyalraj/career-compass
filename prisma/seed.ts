@@ -22,6 +22,7 @@ async function main() {
 
   const TRAJ_AGGRESSIVE_ID = "seed-trajectory-aggressive-v1";
   const TRAJ_STEADY_ID = "seed-trajectory-steady-v1";
+  const TRAJ_UPF_SMC_ID = "seed-trajectory-upf-smc-2027";
 
   const aggressive = await prisma.trajectory.upsert({
     where: { id: TRAJ_AGGRESSIVE_ID },
@@ -29,7 +30,7 @@ async function main() {
       id: TRAJ_AGGRESSIVE_ID,
       name: "Aggressive Pivot (6 mo)",
       description: "High-intensity path to EU Audio/ML",
-      isActive: true,
+      isActive: false,
       color: "#7c3aed",
       startDate: new Date("2026-06-01"),
       targetDate: new Date("2026-12-01"),
@@ -37,7 +38,7 @@ async function main() {
     update: {
       name: "Aggressive Pivot (6 mo)",
       description: "High-intensity path to EU Audio/ML",
-      isActive: true,
+      isActive: false,
       color: "#7c3aed",
       startDate: new Date("2026-06-01"),
       targetDate: new Date("2026-12-01"),
@@ -65,76 +66,67 @@ async function main() {
     },
   });
 
-  const milestoneTitles = [
-    { title: "CV & LinkedIn ready", category: "career", days: 14 },
-    { title: "Project #1 shipped (portfolio)", category: "project", days: 45 },
-    { title: "Project #2 shipped", category: "project", days: 90 },
-    { title: "50 applications sent", category: "career", days: 120 },
-    { title: "5 warm referrals", category: "career", days: 150 },
-    { title: "3 onsites completed", category: "interview", days: 165 },
-    { title: "Offer signed", category: "career", days: 175 },
-    { title: "Visa filed", category: "visa", days: 185 },
-    { title: "Relocation booked", category: "personal", days: 200 },
+  const upfSmc = await prisma.trajectory.upsert({
+    where: { id: TRAJ_UPF_SMC_ID },
+    create: {
+      id: TRAJ_UPF_SMC_ID,
+      name: "UPF Barcelona MSc SMC (Sept 2027)",
+      description: "Official plan for MSc Sound & Music Computing at UPF Barcelona (Sept 2027 Intake)",
+      isActive: true,
+      color: "#7c3aed",
+      startDate: new Date("2026-05-22"),
+      targetDate: new Date("2027-09-20"),
+    },
+    update: {
+      name: "UPF Barcelona MSc SMC (Sept 2027)",
+      description: "Official plan for MSc Sound & Music Computing at UPF Barcelona (Sept 2027 Intake)",
+      isActive: true,
+      color: "#7c3aed",
+      startDate: new Date("2026-05-22"),
+      targetDate: new Date("2027-09-20"),
+    },
+  });
+
+  const upfMilestones = [
+    { title: "Confirm admission details & set up master folder", category: "finance", targetDate: new Date("2026-06-15"), status: "in_progress", bucket: "now" },
+    { title: "IELTS preparation & vocabulary drills", category: "learning", targetDate: new Date("2026-07-31"), status: "in_progress", bucket: "now" },
+    { title: "Prepare academic reference letters & transcripts", category: "career", targetDate: new Date("2026-10-31"), status: "planned", bucket: "next" },
+    { title: "Submit complete UPF application online (Round 1)", category: "career", targetDate: new Date("2026-11-30"), status: "planned", bucket: "next" },
+    { title: "Apply for Inlaks & JN Tata Scholarships", category: "scholarship", targetDate: new Date("2027-03-31"), status: "planned", bucket: "next" },
+    { title: "Apply for SBI loan with property collateral", category: "finance", targetDate: new Date("2027-06-15"), status: "planned", bucket: "later" },
+    { title: "Apostille documents & Spanish visa appointment", category: "visa", targetDate: new Date("2027-07-31"), status: "planned", bucket: "later" },
+    { title: "Book temporary Poblenou accommodation (2mo)", category: "personal", targetDate: new Date("2027-08-15"), status: "planned", bucket: "later" },
+    { title: "Arrive in Barcelona & register Empadronamiento", category: "personal", targetDate: new Date("2027-09-10"), status: "planned", bucket: "later" },
+    { title: "Spanish residency card (TIE) application", category: "visa", targetDate: new Date("2027-10-15"), status: "planned", bucket: "later" },
+    { title: "Secure remote Java / audio ML consulting", category: "career", targetDate: new Date("2027-11-30"), status: "planned", bucket: "later" },
+    { title: "Start applications for tech roles (Spotify, Dolby)", category: "career", targetDate: new Date("2028-03-31"), status: "planned", bucket: "later" },
+    { title: "Graduate and defend MSc thesis", category: "project", targetDate: new Date("2028-09-15"), status: "planned", bucket: "later" },
+    { title: "Transition to Spanish work permit", category: "visa", targetDate: new Date("2028-10-15"), status: "planned", bucket: "later" },
+    { title: "First EMI repayment due", category: "finance", targetDate: new Date("2029-04-15"), status: "planned", bucket: "later" },
   ];
 
   let order = 0;
-  for (const m of milestoneTitles) {
-    const d = new Date("2026-06-01");
-    d.setDate(d.getDate() + m.days);
-    const status =
-      order < 2 ? "done" : order === 2 ? "in_progress" : "planned";
-    const completedAt = order < 2 ? d : null;
-    const mid = `seed-mile-aggressive-${order}`;
+  for (const m of upfMilestones) {
+    const mid = `seed-mile-upf-${order}`;
     await prisma.milestone.upsert({
       where: { id: mid },
       create: {
         id: mid,
-        trajectoryId: aggressive.id,
+        trajectoryId: upfSmc.id,
         title: m.title,
         category: m.category,
-        status,
-        targetDate: d,
+        status: m.status,
+        targetDate: m.targetDate,
         order,
-        completedAt,
-        bucket: m.days <= 30 ? "now" : m.days <= 90 ? "next" : "later",
+        bucket: m.bucket,
       },
       update: {
         title: m.title,
         category: m.category,
-        status,
-        targetDate: d,
+        status: m.status,
+        targetDate: m.targetDate,
         order,
-        completedAt,
-        bucket: m.days <= 30 ? "now" : m.days <= 90 ? "next" : "later",
-      },
-    });
-    order += 1;
-  }
-
-  order = 0;
-  for (const m of milestoneTitles) {
-    const d = new Date("2026-06-01");
-    d.setDate(d.getDate() + m.days * 2);
-    const mid = `seed-mile-steady-${order}`;
-    await prisma.milestone.upsert({
-      where: { id: mid },
-      create: {
-        id: mid,
-        trajectoryId: steady.id,
-        title: m.title,
-        category: m.category,
-        status: "planned",
-        targetDate: d,
-        order,
-        bucket: m.days <= 60 ? "now" : m.days <= 150 ? "next" : "later",
-      },
-      update: {
-        title: m.title,
-        category: m.category,
-        status: "planned",
-        targetDate: d,
-        order,
-        bucket: m.days <= 60 ? "now" : m.days <= 150 ? "next" : "later",
+        bucket: m.bucket,
       },
     });
     order += 1;
