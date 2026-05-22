@@ -252,6 +252,13 @@ def main():
     print(f"  │   Voice: {VOICE:<22} Agent: {AGENT_URL:<14} │")
     print("  └─────────────────────────────────────────────────────┘\n")
 
+    import redis
+    r_heart = None
+    try:
+        r_heart = redis.Redis(host='127.0.0.1', port=6379, db=0)
+    except Exception:
+        pass
+
     recognizer = sr.Recognizer()
     mic_idx = MIC_INDEX
 
@@ -274,6 +281,11 @@ def main():
     mic_errors = 0
     while True:
         try:
+            if r_heart:
+                try:
+                    r_heart.setex("sensei:heartbeat:mic", 30, "active")
+                except Exception:
+                    pass
             audio = record_phrase(mic_idx)
             mic_errors = 0
         except KeyboardInterrupt:

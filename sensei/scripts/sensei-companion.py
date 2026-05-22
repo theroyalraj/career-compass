@@ -111,6 +111,9 @@ def main():
     log.info("Sensei companion and silence watch daemon online.")
     r = redis.Redis(host='127.0.0.1', port=6379, db=0, decode_responses=True)
 
+    KEY_SILENCE_THRESHOLD = "sensei:silence_threshold_sec"
+    KEY_HEARTBEAT = "sensei:heartbeat:companion"
+
     # Initialize last activity timestamp
     now = int(time.time())
     if not r.exists(KEY_ACTIVITY):
@@ -120,6 +123,12 @@ def main():
         try:
             time.sleep(5)
             now = int(time.time())
+
+            # Set heartbeat
+            try:
+                r.setex(KEY_HEARTBEAT, 15, "active")
+            except Exception as ex:
+                log.warning("Heartbeat set failed: %s", ex)
 
             # 1. Read Pomodoro State
             pomo_state = r.get(KEY_POMO_STATE) or "inactive"
@@ -148,10 +157,17 @@ def main():
 
             # 3. Proactive Silence Watcher (if Pomodoro focus or Inactive)
             if pomo_state != "break":
+                # Dynamically read silence threshold from Redis, fallback to default (180s)
+                try:
+                    redis_threshold = r.get(KEY_SILENCE_THRESHOLD)
+                    current_threshold = int(redis_threshold) if redis_threshold else SILENCE_THRESHOLD_SEC
+                except Exception:
+                    current_threshold = SILENCE_THRESHOLD_SEC
+
                 last_act = int(r.get(KEY_ACTIVITY) or now)
                 idle_sec = now - last_act
 
-                if idle_sec >= SILENCE_THRESHOLD_SEC:
+                if idle_sec >= current_threshold:
                     roll = random.randint(1, 100)
                     log.info("Silence detected for %ds. Rolled %d/100 (threshold <=70 for speaking)", idle_sec, roll)
                     
@@ -164,7 +180,7 @@ def main():
                     else:
                         # 30% probability of staying quiet, wait an additional 90 seconds
                         log.info("Decided to keep silent to preserve focus. Delaying next check.")
-                        r.set(KEY_ACTIVITY, now - (SILENCE_THRESHOLD_SEC - 90))
+                        r.set(KEY_ACTIVITY, now - (current_threshold - 90))
 
         except Exception as e:
             log.error("Companion loop error: %s", e)
